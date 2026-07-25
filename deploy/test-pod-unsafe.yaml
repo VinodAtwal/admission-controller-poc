@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pod-unsafe
+  namespace: default
+  labels:
+    app: test-pod-unsafe
+spec:
+  containers:
+    - name: app-container
+      image: alpine:latest
+      command: ["/bin/sh", "-c"]
+      args: ["echo Starting app && sleep 3600"]
+      env:
+        - name: DATABASE_URL
+          value: "postgres://dbuser:my-cleartext-pass-123@postgres-service:5432/mydb"
+        - name: AWS_ACCESS_KEY_ID
+          value: "AKIAIOSFODNN7EXAMPLE" # triggers rule-based regex check
+        - name: GITHUB_PAT
+          value: "ghp_1234567890abcdefghijklmnopqrstuvwxyz" # triggers rule-based regex check
+        - name: JWT_SECRET
+          value: "some-long-plain-text-jwt-secret-key-exposure" # triggers name-based heuristic check

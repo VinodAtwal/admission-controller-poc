@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: secret-scanner-webhook-service
+  namespace: default
+  labels:
+    app: secret-scanner-webhook
+spec:
+  ports:
+    - port: 443
+      targetPort: 8443
+      protocol: TCP
+  selector:
+    app: secret-scanner-webhook

@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secret-scanner-webhook
+  namespace: default
+  labels:
+    app: secret-scanner-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: secret-scanner-webhook
+  template:
+    metadata:
+      labels:
+        app: secret-scanner-webhook
+    spec:
+      containers:
+        - name: webhook
+          image: secret-scanner-webhook:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8443
+          env:
+            - name: PORT
+              value: "8443"
+            - name: TLS_CERT_FILE
+              value: "/etc/webhook/certs/tls.crt"
+            - name: TLS_KEY_FILE
+              value: "/etc/webhook/certs/tls.key"
+            - name: ENFORCE_SECRETS_BLOCK
+              value: "true"
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /etc/webhook/certs
+              readOnly: true
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8443
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8443
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: secret-scanner-webhook-certs
